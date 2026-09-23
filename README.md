@@ -44,6 +44,7 @@ Tracking my progress through the **CoderCo DevOps Course**, including coursework
 - [ ] Challenge 2
 - [ ] Challenge 3
 - [ ] Challenge 4
+- [ ] Add comments and documentation on tasks completed to read back after
 
 > Completed the core Bash module and Bash Arena through Level 10.  
 > Moving on to Git and will return to the remaining Bash practice later.
