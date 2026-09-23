@@ -33,13 +33,13 @@ Tracking my progress through the **CoderCo DevOps Course**, including coursework
 
 ### Coursework
 - [x] Completed Bash video lessons
+- [x] Completed Bash Quiz - **28/30**
 
 ### Bash Arena
 - [x] Levels 1–10
 - [ ] Levels 11–15
 
 ### Remaining Practice
-- [ ] Bash Quiz
 - [ ] Challenge 1
 - [ ] Challenge 2
 - [ ] Challenge 3
