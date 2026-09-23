@@ -1,6 +1,6 @@
 # DevOps Practice
 
-Tracking my progress through the **CoderCo DevOps course**, including coursework, labs, challenges, and hands-on practice.
+Tracking my progress through the **CoderCo DevOps Course**, including coursework, practical exercises, challenges, and quizzes.
 
 ---
 
@@ -8,9 +8,9 @@ Tracking my progress through the **CoderCo DevOps course**, including coursework
 
 | Module | Status | Progress |
 |--------|--------|----------|
-| Linux | ✅ Completed | Coursework complete |
-| Bash | 🚧 In Progress | Bash Arena Level 10 |
-| Git | ⏳ Next | Not started |
+| Linux | ✅ Completed | Module complete |
+| Bash | ✅ Completed for Now | Core learning + Arena Levels 1–10 |
+| Git | 🚧 In Progress | Current module |
 
 ---
 
@@ -29,7 +29,7 @@ Tracking my progress through the **CoderCo DevOps course**, including coursework
 
 ## 💻 Bash
 
-**Status:** 🚧 In Progress
+**Status:** ✅ Completed for Now
 
 ### Coursework
 - [x] Completed Bash video lessons
@@ -38,38 +38,39 @@ Tracking my progress through the **CoderCo DevOps course**, including coursework
 - [x] Levels 1–10
 - [ ] Levels 11–15
 
-### Remaining
+### Remaining Practice
 - [ ] Bash Quiz
 - [ ] Challenge 1
 - [ ] Challenge 2
 - [ ] Challenge 3
 - [ ] Challenge 4
 
+> Completed the core Bash module and Bash Arena through Level 10.  
+> Moving on to Git and will return to the remaining Bash practice later.
+
 ---
 
 ## 🌿 Git
 
-**Status:** ⏳ Next Module
+**Status:** 🚧 In Progress
 
 ### Coursework
-- [ ] Start Git video lessons
-- [ ] Complete Git coursework
-- [ ] Complete Git practical tasks
+- [ ] Complete Git video lessons
+- [ ] Complete Git practical exercises
 - [ ] Complete Git quiz
 
 ---
 
-## Current Focus
+## 🎯 Current Focus
 
-📍 **Bash Arena — Level 11**
+**Git**
 
-Next milestone: Complete Bash Arena Levels 11–15, followed by the Bash challenges and quiz.
-Start Watching Git Videos
+Building on the Linux and Bash foundations while learning version control and Git workflows.
 
 ---
 
-## Repository Purpose
+## About This Repository
 
-This repository documents my hands-on DevOps learning and practice as I progress through the CoderCo coursework.
+This repository documents my hands-on DevOps learning throughout the CoderCo course.
 
-Each module contains exercises, scripts, challenges, and notes demonstrating the concepts I've learned.
+It will contain exercises, scripts, challenges, notes, and other practical work as I progress through each module.
