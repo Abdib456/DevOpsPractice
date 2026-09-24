@@ -58,7 +58,7 @@ Tracking my progress through the **CoderCo DevOps Course**, including coursework
 ### Coursework
 - [ ] Complete Git video lessons
 - [ ] Complete Git practical exercises
-- [ ] Complete Git quiz
+- [x] Completed Git quiz - **26/30**
 
 ---
 
