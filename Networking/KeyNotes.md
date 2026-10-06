@@ -6,6 +6,23 @@ They are not intended to cover networking in depth. They are a quick reference f
 
 ---
 
+## Table of Contents
+
+1. [Networking Fundamentals](#1-networking-fundamentals)
+2. [OSI Model](#2-osi-model)
+3. [DNS](#3-dns)
+4. [Routing](#4-routing)
+5. [Subnetting, CIDR and NAT](#5-subnetting-cidr-and-nat)
+6. [Network Troubleshooting](#6-network-troubleshooting)
+7. [Cloud / AWS Networking](#7-cloud--aws-networking)
+8. [NGINX and HTTP Networking](#8-nginx-and-http-networking)
+9. [SSH](#9-ssh)
+10. [Key Mental Models](#10-key-mental-models)
+11. [Things I Especially Want to Remember](#11-things-i-especially-want-to-remember)
+12. [Quick Troubleshooting Checklist](#quick-troubleshooting-checklist)
+
+---
+
 # 1. Networking Fundamentals
 
 ## What Is a Network?
