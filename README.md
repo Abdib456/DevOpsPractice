@@ -68,8 +68,9 @@ Tracking my progress through the **CoderCo DevOps Course**, including coursework
 **Status:** 🚧 In Progress
 
 ### Coursework
-- [ ] Complete Networking video lessons
-- [ ] Complete Networking core assignment
+- [x] Complete Networking video lessons
+- [x] Complete Networking core assignment
+- [ ] Complete Networking Key Notes
 - [ ] Complete Networking quiz
 
 ---
