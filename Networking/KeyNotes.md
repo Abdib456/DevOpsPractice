@@ -667,29 +667,1259 @@ This is one reason private devices do not each necessarily need their own public
 
 # 6. Network Troubleshooting
 
-A useful troubleshooting approach is to test the network in stages instead of assuming everything is one problem.
+Network troubleshooting should be done **step-by-step**.
 
-Ask questions such as:
+Instead of randomly changing settings, break the communication path into smaller parts and test them individually.
+
+A useful general process is:
 
 ```text
-Is DNS resolving?
+1. Understand what I am trying to reach
+                ↓
+2. Check the service/application
+                ↓
+3. Check listening ports
+                ↓
+4. Check local IP/interface configuration
+                ↓
+5. Test network reachability
+                ↓
+6. Check routing / network path
+                ↓
+7. Check firewalls / network rules
+                ↓
+8. Check DNS
+                ↓
+9. Test the actual application/protocol
+```
 
-Can I reach the machine?
+The exact environment could be anything:
 
-Is the correct port allowed?
+```text
+Linux sandbox
+Virtual machine
+AWS EC2
+Physical server
+Container
+Local computer
+```
 
-Is the service listening?
+The underlying troubleshooting concepts remain the same.
 
-Is the service actually running?
+Cloud environments such as AWS may add extra networking layers, but the Linux and networking fundamentals still apply.
 
-Is the application responding?
+---
+
+## Step 1 — Understand What I Am Testing
+
+Before running commands, identify what should actually be happening.
+
+For example:
+
+> A web server should be reachable at `example.com` over HTTP.
+
+That gives me several things that could independently fail:
+
+```text
+example.com
+     ↓
+DNS resolves hostname
+     ↓
+IP address
+     ↓
+Network route exists
+     ↓
+Traffic is allowed
+     ↓
+TCP port 80 reachable
+     ↓
+Web server listening
+     ↓
+HTTP response
+```
+
+Troubleshooting means finding **which part of this chain is failing**.
+
+Instead of thinking:
+
+> "The network is broken."
+
+I should ask specific questions such as:
+
+```text
+Is the application running?
+
+Is it listening on the correct port?
+
+Does the machine have the expected IP address?
+
+Can the machine reach the destination?
+
+Is routing working?
+
+Is a firewall blocking the traffic?
+
+Does DNS resolve correctly?
+
+Does the actual application respond?
 ```
 
 ---
 
-## Useful Commands
+## Step 2 — Check Whether the Service Is Running
 
-### DNS Lookup
+If I have access to the Linux machine, I can start close to the application.
+
+For example, if NGINX should be running:
+
+```bash
+sudo systemctl status nginx
+```
+
+`systemctl` is used to control and inspect services managed by `systemd`.
+
+The important part of the output would be something such as:
+
+```text
+Active: active (running)
+```
+
+This tells me:
+
+```text
+NGINX process
+     ↓
+is running on this machine
+```
+
+If the service is not running, it could be started with:
+
+```bash
+sudo systemctl start nginx
+```
+
+or restarted with:
+
+```bash
+sudo systemctl restart nginx
+```
+
+### Important
+
+A running service does **not** mean it is reachable over the network.
+
+```text
+Service running
+      ≠
+Service reachable
+```
+
+The service could still be:
+
+```text
+Listening on the wrong port
+
+Listening only on localhost
+
+Blocked by a firewall
+
+Affected by incorrect routing
+
+Being accessed through incorrect DNS
+```
+
+So I should continue testing rather than assuming the problem is solved.
+
+---
+
+## Step 3 — Check Listening Ports
+
+Next, check whether the machine is actually listening for network connections.
+
+### `ss`
+
+On modern Linux:
+
+```bash
+sudo ss -tulpn
+```
+
+`ss` stands for **socket statistics** and displays information about network sockets.
+
+The options mean:
+
+```text
+-t → TCP sockets
+
+-u → UDP sockets
+
+-l → listening sockets
+
+-p → process using the socket
+
+-n → show numerical addresses and ports
+```
+
+For a normal NGINX HTTP server, I would expect something listening on:
+
+```text
+:80
+```
+
+For SSH:
+
+```text
+:22
+```
+
+Conceptually:
+
+```text
+NGINX process
+      ↓
+Listening socket
+      ↓
+TCP port 80
+```
+
+This helps answer:
+
+> Is the application actually waiting for network connections on the port I expect?
+
+### `netstat`
+
+I may also see:
+
+```bash
+netstat -tulpn
+```
+
+`netstat` is an older networking command that can display things such as:
+
+```text
+Network connections
+Listening ports
+Routing information
+Interface statistics
+```
+
+It appears frequently in older tutorials and systems.
+
+For many tasks, modern Linux prefers:
+
+```text
+netstat → older
+
+ss      → modern replacement
+```
+
+Some Linux systems may not have `netstat` installed by default.
+
+For checking listening ports, I should generally prefer:
+
+```bash
+ss -tulpn
+```
+
+but I should still recognise `netstat`.
+
+---
+
+## Step 4 — Test the Application Locally
+
+Before blaming the wider network, test whether the application works **on the machine itself**.
+
+For an HTTP server:
+
+```bash
+curl http://localhost
+```
+
+`curl` is a command-line tool used to communicate with network services.
+
+Here:
+
+```text
+http://
+   ↓
+Use HTTP
+
+localhost
+   ↓
+This machine
+```
+
+So:
+
+```bash
+curl http://localhost
+```
+
+essentially asks:
+
+> Can this machine make an HTTP request to its own web server?
+
+Conceptually:
+
+```text
+curl
+ ↓
+localhost
+ ↓
+TCP :80
+ ↓
+NGINX
+ ↓
+HTTP response
+```
+
+If this works but another computer cannot access the website, that gives me useful information:
+
+```text
+Application works locally
+          ↓
+Problem may be outside the application
+          ↓
+Firewall / routing / external networking
+```
+
+This is an important troubleshooting technique because it helps separate an **application problem** from a **network problem**.
+
+---
+
+## Step 5 — Inspect Network Interfaces and IP Addresses
+
+Next, understand how the Linux machine itself is configured on the network.
+
+### `ip addr`
+
+Use:
+
+```bash
+ip addr
+```
+
+This displays the machine's network interfaces and configured IP addresses.
+
+I may see interfaces such as:
+
+```text
+lo
+eth0
+ens33
+enp0s3
+```
+
+The exact interface names depend on the environment.
+
+This command helps answer:
+
+> What network interfaces and IP addresses does this machine have?
+
+### `lo` — Loopback Interface
+
+`lo` is the **loopback interface**.
+
+It normally contains:
+
+```text
+127.0.0.1
+```
+
+which is associated with:
+
+```text
+localhost
+```
+
+The loopback interface allows the machine to communicate with itself.
+
+For example:
+
+```bash
+curl http://localhost
+```
+
+can communicate with a local web server through the loopback interface.
+
+### `ifconfig`
+
+I will also commonly see:
+
+```bash
+ifconfig
+```
+
+`ifconfig` is an older command used to inspect and configure network interfaces.
+
+It can display information such as:
+
+```text
+Network interfaces
+IP addresses
+Network masks
+Interface state
+```
+
+Modern Linux generally prefers the `ip` command.
+
+A useful mental model is:
+
+```text
+Older:
+
+ifconfig
+
+
+Modern:
+
+ip addr
+```
+
+Some modern Linux systems do not install `ifconfig` by default.
+
+Therefore, I should know both commands but generally prefer:
+
+```bash
+ip addr
+```
+
+---
+
+## Step 6 — Test Network Reachability with `ping`
+
+One of the most common networking commands is:
+
+```bash
+ping <destination>
+```
+
+For example:
+
+```bash
+ping google.com
+```
+
+or:
+
+```bash
+ping 8.8.8.8
+```
+
+`ping` is commonly used as a basic network connectivity test.
+
+However, to understand `ping`, I need to understand **ICMP**.
+
+### What Is ICMP?
+
+ICMP stands for:
+
+```text
+Internet Control Message Protocol
+```
+
+ICMP is used by networked devices for control, diagnostic and error-reporting messages.
+
+It is different from application protocols such as:
+
+```text
+HTTP → web communication
+
+SSH  → remote access
+
+DNS  → name resolution
+
+ICMP → network control / diagnostic messages
+```
+
+`ping` commonly sends an:
+
+```text
+ICMP Echo Request
+```
+
+to the destination.
+
+The destination may respond with an:
+
+```text
+ICMP Echo Reply
+```
+
+Conceptually:
+
+```text
+My Machine
+    |
+    | ICMP Echo Request
+    v
+Destination
+    |
+    | ICMP Echo Reply
+    v
+My Machine
+```
+
+If replies return, I know there is at least some working IP connectivity between the machines.
+
+### Why Do People Use `ping google.com`?
+
+Networking examples often use:
+
+```bash
+ping google.com
+```
+
+because Google is a well-known external hostname that is normally reachable from internet-connected systems.
+
+It provides a convenient test.
+
+If:
+
+```bash
+ping google.com
+```
+
+works, several things were involved:
+
+```text
+google.com
+     ↓
+DNS resolves the hostname
+     ↓
+Destination IP obtained
+     ↓
+Routing towards destination works
+     ↓
+ICMP Echo Request sent
+     ↓
+ICMP Echo Reply received
+```
+
+However:
+
+```text
+ping google.com works
+```
+
+does **not** prove that every network service works.
+
+It does not prove that:
+
+```text
+HTTP works
+
+SSH works
+
+Port 443 is reachable
+
+My own application works
+```
+
+It specifically gives me information about ICMP connectivity.
+
+### Ping an IP vs Ping a Domain
+
+Using an IP address and using a hostname can help isolate DNS problems.
+
+First:
+
+```bash
+ping 8.8.8.8
+```
+
+This uses an IP address directly, so DNS does not need to translate a hostname first.
+
+Then:
+
+```bash
+ping google.com
+```
+
+This requires DNS to resolve `google.com` before `ping` can send traffic to the resulting IP.
+
+Imagine:
+
+```text
+ping 8.8.8.8
+      ↓
+WORKS
+
+ping google.com
+      ↓
+FAILS because the hostname cannot be resolved
+```
+
+This suggests:
+
+```text
+Basic IP connectivity may work
+           ↓
+DNS may be the problem
+```
+
+It does not automatically prove DNS is the problem, but it gives me a strong clue about what to investigate next.
+
+### Important Limitation of `ping`
+
+`ping` does **not** test TCP or UDP ports.
+
+ICMP does not use ports in the same way TCP and UDP do.
+
+Therefore:
+
+```bash
+ping example.com
+```
+
+does not test:
+
+```text
+TCP :22
+
+TCP :80
+
+TCP :443
+```
+
+Also:
+
+```text
+ping fails
+```
+
+does **not** automatically mean:
+
+```text
+Server is down
+```
+
+ICMP may simply be blocked by a firewall or network policy.
+
+For example:
+
+```text
+ICMP blocked
+     ↓
+ping fails
+
+BUT
+
+TCP :443 allowed
+     ↓
+HTTPS website still works
+```
+
+---
+
+## Step 7 — Check Routing
+
+Once I understand the machine's IP configuration, I can inspect where it will send network traffic.
+
+Use:
+
+```bash
+ip route
+```
+
+This displays the Linux routing table.
+
+I may see something such as:
+
+```text
+default via 192.168.1.1
+```
+
+The default route is used when there is no more specific route for a destination.
+
+Conceptually:
+
+```text
+Need to send packet
+        ↓
+Look at destination IP
+        ↓
+Check routing table
+        ↓
+Find matching route
+        ↓
+Send towards next hop / gateway
+```
+
+This helps answer:
+
+> Does this machine know where to send traffic for the destination?
+
+If the machine has no appropriate route, the application may work perfectly but traffic may still be unable to reach another network.
+
+---
+
+## Step 8 — Inspect the Network Path with `traceroute`
+
+Use:
+
+```bash
+traceroute <destination>
+```
+
+For example:
+
+```bash
+traceroute google.com
+```
+
+`traceroute` helps show the network hops traffic passes through on the way towards a destination.
+
+Conceptually:
+
+```text
+My Machine
+    ↓
+Gateway
+    ↓
+Router
+    ↓
+Router
+    ↓
+Destination
+```
+
+This can help investigate:
+
+```text
+What path is traffic taking?
+
+How far does traffic appear to get?
+
+Is traffic taking an unexpected path?
+```
+
+Not every router responds to traceroute probes.
+
+Therefore, missing hops do **not** automatically mean that the connection is broken.
+
+---
+
+## Step 9 — Check Firewalls and Network Controls
+
+If the application works locally but cannot be reached remotely, something may be blocking the traffic.
+
+The exact thing I check depends on the environment.
+
+### Generic Linux Environment
+
+A Linux machine may have a host firewall.
+
+Depending on the Linux distribution, firewall tools may include:
+
+```text
+ufw
+firewalld
+iptables
+nftables
+```
+
+For example, Ubuntu commonly provides:
+
+```bash
+sudo ufw status
+```
+
+This shows whether UFW is active and its configured rules.
+
+The important question is:
+
+```text
+Service is listening
+        ↓
+Does the firewall allow traffic to that service?
+```
+
+For example:
+
+```text
+NGINX listening on TCP :80
+           ↓
+Firewall blocks TCP :80
+           ↓
+Remote users cannot reach NGINX
+```
+
+The application itself could be completely healthy.
+
+### AWS EC2 Environment
+
+If the Linux machine happens to be an AWS EC2 instance, there are additional AWS networking components to consider.
+
+For example:
+
+```text
+Internet
+   ↓
+AWS networking
+   ↓
+Security Group
+   ↓
+EC2
+   ↓
+Linux firewall
+   ↓
+Application
+```
+
+For my NGINX assignment, HTTP required:
+
+```text
+TCP :80 → allowed
+```
+
+in the AWS Security Group.
+
+SSH required:
+
+```text
+TCP :22 → allowed from an appropriate source
+```
+
+An AWS Security Group is therefore **not a universal Linux troubleshooting step**.
+
+It is an additional environment-specific network control because the Linux server happens to be running inside AWS.
+
+Other environments may have different network controls.
+
+For example:
+
+```text
+Generic Linux server
+        ↓
+Linux firewall
+
+AWS EC2
+        ↓
+Security Group + Linux firewall
+
+Other cloud provider
+        ↓
+Provider firewall + Linux firewall
+
+Company network
+        ↓
+Network firewall + Linux firewall
+```
+
+The general troubleshooting principle remains the same:
+
+> Identify every point where traffic could be allowed, blocked or incorrectly routed.
+
+---
+
+## Step 10 — Check DNS
+
+If IP connectivity appears to work, investigate name resolution.
+
+### `nslookup`
+
+A basic DNS lookup can be performed with:
+
+```bash
+nslookup google.com
+```
+
+This asks DNS for information about `google.com`.
+
+The result can include the IP addresses associated with the hostname.
+
+This is why tutorials commonly use:
+
+```bash
+nslookup google.com
+```
+
+Google is simply being used as a well-known real domain to demonstrate DNS resolution.
+
+I could instead use:
+
+```bash
+nslookup example.com
+```
+
+or my own domain:
+
+```bash
+nslookup abdibasid.co.uk
+```
+
+The important concept is:
+
+```text
+Hostname
+   ↓
+DNS lookup
+   ↓
+IP address
+```
+
+### `dig`
+
+Another common DNS command is:
+
+```bash
+dig google.com
+```
+
+`dig` provides more detailed DNS information.
+
+It can show information such as:
+
+```text
+DNS answer
+Record type
+Returned IP
+DNS server
+Query timing
+```
+
+For basic troubleshooting, I can think:
+
+```text
+nslookup
+    ↓
+Simple DNS lookup
+
+
+dig
+    ↓
+More detailed DNS investigation
+```
+
+### DNS vs Network Connectivity
+
+A useful comparison is:
+
+```bash
+ping 8.8.8.8
+```
+
+and:
+
+```bash
+nslookup google.com
+```
+
+They answer different questions.
+
+```text
+ping 8.8.8.8
+      ↓
+Can I communicate with an external IP using ICMP?
+
+
+nslookup google.com
+      ↓
+Can DNS resolve this hostname?
+```
+
+This helps me avoid thinking of "the internet" as one single component.
+
+---
+
+## Step 11 — Test the Actual Protocol
+
+After checking the lower-level networking pieces, test the actual service I care about.
+
+For HTTP:
+
+```bash
+curl http://example.com
+```
+
+For HTTPS:
+
+```bash
+curl https://example.com
+```
+
+A useful option is:
+
+```bash
+curl -I https://example.com
+```
+
+`-I` requests the HTTP response headers rather than the normal response body.
+
+This can quickly show an HTTP response such as:
+
+```text
+HTTP/2 200
+```
+
+The important distinction is:
+
+```bash
+ping example.com
+```
+
+asks roughly:
+
+> Can I get an ICMP response from this destination?
+
+Whereas:
+
+```bash
+curl https://example.com
+```
+
+asks:
+
+> Can I actually communicate with the web service using HTTPS?
+
+That makes `curl` a more application-specific test.
+
+For a successful web request, several components may need to work:
+
+```text
+DNS
+ ↓
+IP address
+ ↓
+Routing
+ ↓
+Firewall / network rules
+ ↓
+TCP connection
+ ↓
+Web server
+ ↓
+HTTP/HTTPS
+ ↓
+Response
+```
+
+---
+
+## Other Useful Linux Networking Commands
+
+These are useful networking commands to recognise even if I do not use all of them every day.
+
+### `hostname`
+
+```bash
+hostname
+```
+
+Displays the machine's hostname.
+
+To quickly display IP addresses associated with the host:
+
+```bash
+hostname -I
+```
+
+---
+
+### `ip`
+
+The `ip` command is one of the main modern Linux networking tools.
+
+```bash
+ip addr
+```
+
+Shows network interfaces and IP addresses.
+
+```bash
+ip route
+```
+
+Shows the routing table.
+
+```bash
+ip link
+```
+
+Shows network interfaces and their state.
+
+Mental model:
+
+```text
+ip addr
+   ↓
+Addresses
+
+ip route
+   ↓
+Routes
+
+ip link
+   ↓
+Interfaces
+```
+
+---
+
+### `ss`
+
+Used to inspect sockets and network connections.
+
+```bash
+ss -tulpn
+```
+
+Shows listening TCP/UDP sockets and associated processes.
+
+---
+
+### `netstat`
+
+Older networking utility.
+
+```bash
+netstat -tulpn
+```
+
+Can inspect listening ports and connections.
+
+For many modern Linux tasks:
+
+```text
+netstat → older
+
+ss      → preferred modern command
+```
+
+---
+
+### `ifconfig`
+
+Older command for inspecting/configuring network interfaces.
+
+```bash
+ifconfig
+```
+
+Modern equivalent for viewing interfaces and addresses:
+
+```bash
+ip addr
+```
+
+---
+
+### `ping`
+
+```bash
+ping google.com
+```
+
+Tests ICMP reachability.
+
+---
+
+### `traceroute`
+
+```bash
+traceroute google.com
+```
+
+Investigates the network path towards a destination.
+
+---
+
+### `nslookup`
+
+```bash
+nslookup google.com
+```
+
+Performs a DNS lookup.
+
+---
+
+### `dig`
+
+```bash
+dig google.com
+```
+
+Performs a more detailed DNS query.
+
+---
+
+### `curl`
+
+```bash
+curl https://google.com
+```
+
+Tests communication with an HTTP/HTTPS service.
+
+---
+
+## Putting It All Together — Generic Linux Example
+
+Imagine I am placed into an arbitrary Linux sandbox and told:
+
+> "This Linux machine cannot reach `example.com`. Troubleshoot it."
+
+I should **not** immediately think about AWS.
+
+I should start gathering evidence.
+
+### 1. What interfaces and IP addresses do I have?
+
+```bash
+ip addr
+```
+
+This tells me how the machine itself is configured.
+
+### 2. What routes do I have?
+
+```bash
+ip route
+```
+
+This tells me where the machine will send traffic.
+
+### 3. Can I reach an external IP?
+
+```bash
+ping 8.8.8.8
+```
+
+Because I am using an IP address directly, this test does not require DNS to translate a hostname first.
+
+If this fails, I may need to investigate:
+
+```text
+Network interface
+IP configuration
+Routing
+Firewall
+External connectivity
+```
+
+### 4. Can I use a hostname?
+
+```bash
+ping google.com
+```
+
+If:
+
+```text
+ping 8.8.8.8
+      ↓
+WORKS
+
+ping google.com
+      ↓
+FAILS because hostname cannot be resolved
+```
+
+then basic IP connectivity may be working while DNS may have a problem.
+
+### 5. Can DNS resolve names?
 
 ```bash
 nslookup example.com
@@ -701,122 +1931,261 @@ or:
 dig example.com
 ```
 
-Useful for checking whether DNS resolves a hostname correctly.
+This tests DNS more directly.
 
----
+### 6. What path is traffic taking?
 
-### Test Reachability
-
-```bash
-ping <host>
-```
-
-Useful for testing ICMP connectivity when ICMP is allowed.
-
-A failed ping does not automatically mean the server is down because ICMP may be blocked.
-
----
-
-### View Network Path
+If necessary:
 
 ```bash
-traceroute <host>
+traceroute example.com
 ```
 
-Shows the network hops traffic takes towards a destination.
+This helps investigate the network path.
 
----
-
-### Test HTTP
+### 7. Can I reach the actual web service?
 
 ```bash
-curl http://example.com
+curl https://example.com
 ```
 
-Useful for testing a web server without relying on a browser.
+Now I am testing the actual application protocol rather than only ICMP.
+
+At each step I am collecting evidence and narrowing down the possible cause.
 
 ---
 
-### Check Listening Ports
+## Putting It All Together — Web Server Example
 
-On Linux:
+Now imagine the problem is:
+
+> "Users cannot reach the web server running on this Linux machine."
+
+I can approach the problem from the server outward.
+
+### 1. Is the application running?
+
+```bash
+sudo systemctl status nginx
+```
+
+If NGINX is not running, I have found an application-level problem.
+
+### 2. Is it listening on the expected port?
 
 ```bash
 sudo ss -tulpn
 ```
 
-Useful for seeing which services are listening on which ports.
+For HTTP I would expect something listening on:
+
+```text
+:80
+```
+
+For HTTPS:
+
+```text
+:443
+```
+
+### 3. Does the application work locally?
+
+```bash
+curl http://localhost
+```
+
+If this works, NGINX is responding locally.
+
+### 4. What network configuration does the server have?
+
+```bash
+ip addr
+```
+
+Then:
+
+```bash
+ip route
+```
+
+This checks the server's IP/interface configuration and routing.
+
+### 5. Is a Linux firewall blocking traffic?
+
+For example, on a system using UFW:
+
+```bash
+sudo ufw status
+```
+
+### 6. Are there environment-specific network controls?
+
+This depends on where the server is running.
+
+```text
+AWS
+ ↓
+Security Groups / VPC routing
+
+Cloud VM
+ ↓
+Provider firewall / network rules
+
+Company network
+ ↓
+Network firewall
+
+Container
+ ↓
+Container networking / port mapping
+```
+
+### 7. Does DNS point to the correct server?
+
+```bash
+nslookup example.com
+```
+
+or:
+
+```bash
+dig example.com
+```
+
+### 8. Test the service remotely
+
+From another machine:
+
+```bash
+curl http://example.com
+```
+
+At each stage I am narrowing down where the communication stops.
 
 ---
 
-### Check a Service
+## Quick Command Reference
+
+| Command | Main Question |
+|---|---|
+| `ip addr` | What interfaces and IP addresses do I have? |
+| `ip link` | What network interfaces exist and are they up? |
+| `ip route` | Where will my packets be sent? |
+| `ifconfig` | Older way of viewing/configuring interfaces |
+| `ss -tulpn` | What TCP/UDP ports are listening? |
+| `netstat -tulpn` | Older way of inspecting sockets/ports |
+| `ping <host>` | Can I get an ICMP response? |
+| `traceroute <host>` | What network path is being taken? |
+| `nslookup <domain>` | Does DNS resolve this name? |
+| `dig <domain>` | What detailed DNS information can I see? |
+| `curl <URL>` | Can I communicate with this HTTP/HTTPS service? |
+| `hostname` | What is this machine's hostname? |
+| `hostname -I` | What IP addresses are associated with this host? |
+| `systemctl status <service>` | Is this service running? |
+| `ufw status` | What is the status of the UFW firewall? |
+
+---
+
+## Troubleshooting Mental Model
+
+The most important thing is **not memorising a list of commands**.
+
+Each command should answer a question.
+
+```text
+What interfaces/IPs do I have?
+        ↓
+      ip addr
+
+Where will traffic go?
+        ↓
+      ip route
+
+Can I reach another machine using ICMP?
+        ↓
+       ping
+
+What path is traffic taking?
+        ↓
+    traceroute
+
+Can DNS resolve the hostname?
+        ↓
+  nslookup / dig
+
+What ports are listening?
+        ↓
+        ss
+
+Is my service running?
+        ↓
+    systemctl
+
+Can the actual web application respond?
+        ↓
+       curl
+```
+
+The environment can then add extra layers.
 
 For example:
 
-```bash
-sudo systemctl status nginx
+```text
+Generic Linux
+────────────────────────
+Application
+Ports
+Linux firewall
+IP configuration
+Routing
+DNS
 ```
 
-This checks whether NGINX is running on the server.
-
----
-
-## Service Running Does Not Mean Service Reachable
-
-This is an important troubleshooting distinction.
-
-Running:
-
-```bash
-sudo systemctl status nginx
-```
-
-and seeing:
+Compared with an AWS environment:
 
 ```text
-Active: active (running)
+AWS EC2
+────────────────────────
+Application
+Ports
+Linux firewall
+EC2 networking
+Security Group
+Subnet / Route Table
+Internet Gateway
+DNS
 ```
 
-proves that NGINX is running on the server.
+The overall troubleshooting principle is:
 
-It does **not** prove that users on the internet can reach it.
+> **Start with what I know, test each layer, and find the first point where the expected behaviour stops.**
 
-Opening:
+Do not assume:
 
 ```text
-http://<EC2-PUBLIC-IP>
+Failed website
+      =
+DNS problem
 ```
 
-tests additional components:
+Do not assume:
 
 ```text
-Browser
-   |
-   v
-Internet
-   |
-   v
-EC2 Public IP
-   |
-   v
-Security Group :80
-   |
-   v
-NGINX :80
-   |
-   v
-HTTP Response
+Failed ping
+      =
+Server is down
 ```
 
-Therefore:
+And do not assume:
 
 ```text
-Service check = server-side test
-
-Browser/curl test = network + firewall + service test
+Service running
+      =
+Service reachable
 ```
 
-This is an important DevOps troubleshooting mindset.
+Instead, use each command to collect evidence and narrow the problem down.
 
 ---
 
