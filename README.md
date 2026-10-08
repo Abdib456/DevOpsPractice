@@ -11,7 +11,8 @@ Tracking my progress through the **CoderCo DevOps Course**, including coursework
 | Linux | ✅ Completed | Module complete |
 | Bash | ✅ Completed for Now | Core learning + Arena Levels 1–10 |
 | Git | ✅ Completed | Module complete |
-| Networking | 🚧 In Progress | Current module |
+| Networking | ✅ Completed | Module complete |
+| Docker | 🚧 In Progress | Current module |
 
 ---
 
