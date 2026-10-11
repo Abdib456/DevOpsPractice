@@ -165,3 +165,6 @@ docker start myapp
 - `-e` sets environment variables inside containers.
 - `-p` publishes container ports to the host; it isn't required for internal container-to-container communication.
 - `docker logs` and `docker ps` help verify and troubleshoot running containers.
+- **Docker Compose** uses a `docker-compose.yml` (or `compose.yaml`) file to define and manage multiple containers, including their services, networks, ports and environment variables.
+  - `docker compose up -d` — creates and starts all defined services in the background, building or pulling images when needed.
+  - `docker compose down` — stops and removes the containers and networks created by Compose (but preserves named volumes by default).
