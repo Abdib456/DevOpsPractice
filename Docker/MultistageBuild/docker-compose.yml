@@ -1,0 +1,22 @@
+version: '3.8'
+
+# Where we list all parts of app : Web & Database service
+services:
+  web:
+    # Build from multistage image we built which is saved locally on docker desktop
+    # NOTE this needs to get updated if the image is gone
+    image: my-flask-app:MultistageV2
+    ports:
+      - "5002:5002"
+    # Depends on db so docker compose starts db service first
+    depends_on:
+      - mydb
+
+  mydb:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: my-secret-pw
+
+# COMMANDS:
+# docker compose up -d
+# docker compose down

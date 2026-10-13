@@ -4,7 +4,11 @@ version: '3.8'
 services:
   web:
     # Build from dockerfile which is in same directory hence why we use .
-    build: .
+    # build: .
+    # To use docker compose when using images stored in AWS ECR
+    # This URI will need to be changed as the ECR repository has most likely been deleted
+    # NOTE this needs to get updated if the image is gone
+    image: 342973270440.dkr.ecr.us-east-1.amazonaws.com/flask-mysql:latest
     ports:
       - "5002:5002"
     # Depends on db so docker compose starts db service first
