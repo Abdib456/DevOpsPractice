@@ -12,7 +12,8 @@ Tracking my progress through the **CoderCo DevOps Course**, including coursework
 | Bash | ✅ Completed for Now | Core learning + Arena Levels 1–10 |
 | Git | ✅ Completed | Module complete |
 | Networking | ✅ Completed | Module complete |
-| Docker | 🚧 In Progress | Current module |
+| Docker | ✅ Completed for Now | Core tasks + 2 bonus tasks, Quiz: 29/30 |
+| AWS | 🚧 In Progress | Current module |
 
 ---
 
@@ -76,31 +77,54 @@ Tracking my progress through the **CoderCo DevOps Course**, including coursework
 
 ---
 
+## 🐳 Docker
+
+**Status:** ✅ Completed for Now
+
+### Coursework
+- [x] Completed Docker video lessons
+- [x] Completed Docker practical tasks
+- [x] Completed Docker multi-container application challenge using Flask, Redis, and Docker Compose
+- [x] Bonus Task 1 — Redis persistent storage using Docker volumes
+- [x] Bonus Task 2 — Redis connection settings using environment variables
+- [ ] Bonus Task 3 — Scaling Flask containers and load balancing
+- [x] Completed Docker Quiz — **29/30**
+- [x] Documented the multi-container application challenge
+
+> Completed the Docker module, including the main challenge and two bonus tasks.  
+> Bonus Task 3 will be revisited later in the course.
+
+---
+
+## ☁️ AWS
+
+**Status:** 🚧 In Progress
+
+### Coursework
+- [ ] Complete AWS video lessons
+- [ ] Complete AWS practical tasks and assignments
+- [ ] Complete AWS quiz
+- [ ] Document AWS practical work and key notes
+
+---
+
 ## 🎯 Current Focus
 
-**Networking**
+**AWS**
 
-Currently working through the Networking module, building on the Linux, Bash, and Git knowledge developed so far.
+Currently moving on to the AWS module, building on the Linux, Bash, Git, Networking, and Docker knowledge developed so far.
 
-### 📌 Foundation Review Before Docker
+### 📌 Foundational Review & Outstanding Tasks
 
-After completing Networking, I will pause before moving on to Docker to consolidate the four foundational modules:
+Alongside progressing through AWS, I still need to revisit the previous modules to consolidate my understanding and complete any outstanding work.
 
-- 🐧 **Linux**
-- 💻 **Bash**
-- 🌿 **Git**
-- 🌐 **Networking**
+This includes **Linux, Bash, Git, Networking, and Docker**.
 
-Before progressing to Docker, I will:
-
-- [ ] Return to and complete any outstanding tasks, challenges, or exercises from these modules
-- [ ] Review areas where I need more practice or a stronger understanding
-- [ ] Revisit practical exercises to reinforce key commands and concepts
+- [ ] Return to and complete any outstanding tasks, challenges, or exercises from previous modules
 - [ ] Add clear comments and documentation to previous work where needed
 - [ ] Create structured notes in **Goodnotes on my iPad**, covering key concepts, commands, and important information from each module
-- [ ] Review these notes and make sure I am comfortable with the core concepts before progressing
 
-> **Goal:** Build a strong foundation in Linux, Bash, Git, and Networking before moving on to the **Docker** module.
+> **Goal:** Continue progressing through the **AWS module** while revisiting and strengthening the foundational modules, completing outstanding tasks, and consolidating key knowledge for future DevOps learning.
 
 ## About This Repository
 
