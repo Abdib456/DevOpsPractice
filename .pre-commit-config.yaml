@@ -11,3 +11,5 @@ repos:
     rev: v0.11.0
     hooks:
       - id: shellcheck
+
+# TRY add a git pull pre commit hook

@@ -1,0 +1,39 @@
+services:
+
+  # Flask web application
+  flask:
+    # Build the image using the Dockerfile in ./flask.
+    build: ./flask
+
+    # HOST_PORT:CONTAINER_PORT
+    # Allows our Mac to access Flask at localhost:5002.
+    ports:
+      - "5002:5002"
+
+    # Pass environment variables into the Flask container.
+    # Flask reads these using os.getenv() in app.py.
+    # The hostname 'redis' matches the Redis service name below.
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+
+    # Start Redis before Flask (does not guarantee readiness).
+    depends_on:
+      - redis
+
+  # Redis database for storing the visit counter
+  redis:
+    # Build the image using the Dockerfile in ./redis.
+    build: ./redis
+
+    # Mount a named volume to Redis's /data directory.
+    volumes:
+      - redis-data:/data
+
+    # No ports mapping needed because Flask communicates
+    # with Redis internally through the Compose network.
+
+# Declare the named volume used by the Redis service.
+# Compose manages this volume independently of the containers.
+volumes:
+  redis-data:
