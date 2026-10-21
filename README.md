@@ -123,6 +123,7 @@ This includes **Linux, Bash, Git, Networking, and Docker**.
 - [ ] Return to and complete any outstanding tasks, challenges, or exercises from previous modules
 - [ ] Add clear comments and documentation to previous work where needed
 - [ ] Create structured notes in **Goodnotes on my iPad**, covering key concepts, commands, and important information from each module
+- [ ] Improve my Github Landing Page
 
 > **Goal:** Continue progressing through the **AWS module** while revisiting and strengthening the foundational modules, completing outstanding tasks, and consolidating key knowledge for future DevOps learning.
 
